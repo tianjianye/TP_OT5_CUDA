@@ -15,8 +15,8 @@
 //@@ INSERT CODE HERE
 
 __global__ void blurKernel(int height, int width,float *input, float *output) {    
-	int Col=threadIdx.x+blockIdx.x*blockDim.x;	
-	int Row=threadIdx.y+blockIdx.y*blockDim.y;
+	int Row=threadIdx.x+blockIdx.x*blockDim.x;	
+	int Col=threadIdx.y+blockIdx.y*blockDim.y;
 	if(Col<width && Row<height){
 		for(int k=0;k<3;++k){
 			float pixVal=0;
@@ -72,9 +72,8 @@ int main(int argc, char *argv[]) {
     ///////////////////////////////////////////////////////
     wbTime_start(Compute, "Doing the computation on the GPU");
 
-	int blockSize, gridSize;
 	dim3 DimGrid((imageHeight-1.0)/16.0+1.0,(imageWidth-1.0)/16.0+1.0,1);
-	dim3 DimBlock(64,8,1);
+	dim3 DimBlock(16,16,1);
 	blurKernel<<<DimGrid, DimBlock>>>(imageHeight, imageWidth, deviceInputImageData, deviceOutputImageData);	
 	
     wbTime_stop(Compute, "Doing the computation on the GPU");
@@ -97,10 +96,6 @@ int main(int argc, char *argv[]) {
             color[0] = hostOutputImageData[(i*imageWidth+j)*3]*255;  /* red */
             color[1] = hostOutputImageData[(i*imageWidth+j)*3+1]*255;  /* green */
             color[2] = hostOutputImageData[(i*imageWidth+j)*3+2]*255;  /* blue */
-
-            //color[0] = hostInputImageData[(i*imageWidth+j)*3]*255;  /* red */
-            //color[1] = hostInputImageData[(i*imageWidth+j)*3+1]*255;  /* green */
-            //color[2] = hostInputImageData[(i*imageWidth+j)*3+2]*255;  /* blue */
 
             (void) fwrite(color, 1, 3, fp);
         }
