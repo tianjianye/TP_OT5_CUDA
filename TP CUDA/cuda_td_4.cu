@@ -10,6 +10,8 @@
     }\
 } while (0)\
 
+#define BLOCK_SIZE 32
+
 // Compute C = A * B
 __global__ void matrixMultiply(float *A, float *B, float *C, int numARows,
                                int numAColumns, int numBRows,
@@ -17,14 +19,11 @@ __global__ void matrixMultiply(float *A, float *B, float *C, int numARows,
                                int numCColumns) {
 //@@ Insert code to implement matrix multiplication here
 
-	if(numAColumns != numBRows) {
-        return;
-    }
 	int row = blockIdx.y*blockDim.y+threadIdx.y;
 	int col = blockIdx.x*blockDim.x+threadIdx.x;
 	if(row<numARows && col <numAColumns) {
 		float product_val = 0;
-		for(int k=0;k<numAColumns;k++){
+		for(int k=0;k<numCColumns;k++){
 			product_val += A[row*numAColumns+k]*B[k*numBColumns+col];
 		}
 		if(row < numCRows && col < numCColumns) {
@@ -65,7 +64,7 @@ int main(int argc, char **argv) {
     wbTime_start(GPU, "Allocating GPU memory.");
     //@@ Allocate GPU memory here
     
-	size_t bytes = numCRows*numCColumns*sizeof(double);
+	size_t bytes = numCRows*numCColumns*sizeof(float);
 	cudaMalloc(&deviceA, bytes);
     cudaMalloc(&deviceB, bytes);
     cudaMalloc(&deviceC, bytes);
@@ -80,14 +79,15 @@ int main(int argc, char **argv) {
     wbTime_stop(GPU, "Copying input memory to the GPU.");
     //@@ Initialize the grid and block dimensions here
 	
-	int blockSize, gridSize;
-    blockSize = 1024;
-    gridSize = (int)ceil((float)numCRows*numCColumns/blockSize);
-	
+	dim3 numOfThreadsPerBlock(BLOCK_SIZE, BLOCK_SIZE);
+	int xSize = (numCColumns + numOfThreadsPerBlock.x) / numOfThreadsPerBlock.x;
+    int ySize = (numCRows + numOfThreadsPerBlock.y) / numOfThreadsPerBlock.y;
+    dim3 numOfBlocks(xSize, ySize);
+    
     wbTime_start(Compute, "Performing CUDA computation");
     //@@ Launch the GPU Kernel here
 	
-	matrixMultiply<<<gridSize, blockSize>>>(deviceA, deviceB, deviceC, numARows, numAColumns, numBRows,numBColumns,numCRows,numCColumns);
+	matrixMultiply<<<numOfBlocks, numOfThreadsPerBlock>>>(deviceA, deviceB, deviceC, numARows, numAColumns, numBRows,numBColumns,numCRows,numCColumns);
 	
     cudaDeviceSynchronize();
     wbTime_stop(Compute, "Performing CUDA computation");
