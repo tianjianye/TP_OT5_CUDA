@@ -62,8 +62,10 @@ int main(int argc, char *argv[]) {
     ///////////////////////////////////////////////////////
     wbTime_start(Compute, "Doing the computation on the GPU");
     //@@ INSERT CODE HERE
-	dim3 DimGrid((imageHeight-1.0)/16.0+1.0,(imageWidth-1.0)/16.0+1.0,1.0);
-	dim3 DimBlock(16.0,16.0,1.0);
+	int a=(imageWidth-1)/16+1;
+	int b=(imageHeight-1)/16+1;
+	dim3 DimGrid(a,b,1);
+	dim3 DimBlock(16,16,1);
 	conv<<<DimGrid, DimBlock>>>(imageHeight, imageWidth, deviceInputImageData, deviceOutputImageData);
     wbTime_stop(Compute, "Doing the computation on the GPU");
     ///////////////////////////////////////////////////////

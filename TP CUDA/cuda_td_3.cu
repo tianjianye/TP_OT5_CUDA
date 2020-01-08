@@ -15,8 +15,8 @@
 //@@ INSERT CODE HERE
 
 __global__ void blurKernel(int height, int width,float *input, float *output) {    
-	int Row=threadIdx.x+blockIdx.x*blockDim.x;	
-	int Col=threadIdx.y+blockIdx.y*blockDim.y;
+	int Col=threadIdx.x+blockIdx.x*blockDim.x;	
+	int Row=threadIdx.y+blockIdx.y*blockDim.y;
 	if(Col<width && Row<height){
 		for(int k=0;k<3;++k){
 			float pixVal=0;
@@ -72,7 +72,7 @@ int main(int argc, char *argv[]) {
     ///////////////////////////////////////////////////////
     wbTime_start(Compute, "Doing the computation on the GPU");
 
-	dim3 DimGrid((imageHeight-1.0)/16.0+1.0,(imageWidth-1.0)/16.0+1.0,1);
+	dim3 DimGrid((imageWidth-1.0)/16.0+1.0,(imageHeight-1.0)/16.0+1.0,1);
 	dim3 DimBlock(16,16,1);
 	blurKernel<<<DimGrid, DimBlock>>>(imageHeight, imageWidth, deviceInputImageData, deviceOutputImageData);	
 	
